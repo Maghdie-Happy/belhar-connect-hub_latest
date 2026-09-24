@@ -2,7 +2,8 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { JobCard, StatCard, Section } from "@/components/ui-kit";
-import { categories, categoryEmoji, jobs } from "@/lib/data";
+import { categories, categoryEmoji } from "@/lib/data";
+import { useJobs } from "@/lib/hooks";
 
 export const Route = createFileRoute("/member/dashboard")({
   head: () => ({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/member/dashboard")({
 
 function MemberDashboard() {
   const [cat, setCat] = useState<string>("All");
+  const { jobs } = useJobs();
   const list = cat === "All" ? jobs : jobs.filter((j) => j.category === cat);
 
   return (

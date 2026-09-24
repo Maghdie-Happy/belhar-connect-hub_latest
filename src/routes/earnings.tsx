@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { StatCard } from "@/components/ui-kit";
 import { rand, transactions, weeklyEarnings } from "@/lib/data";
+import { usePaymentMethods } from "@/lib/hooks";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/earnings")({
   head: () => ({
@@ -21,18 +23,42 @@ export const Route = createFileRoute("/earnings")({
 function Earnings() {
   const max = Math.max(...weeklyEarnings.map((d) => d.amount));
   const week = weeklyEarnings.reduce((s, d) => s + d.amount, 0);
+  const { methods } = usePaymentMethods();
+  const defaultMethod = methods.find((method) => method.isDefault) ?? methods[0];
+
+  const handleWithdraw = () => {
+    if (!defaultMethod) {
+      toast.error("Add a payment method in Settings before withdrawing.");
+      return;
+    }
+    toast.success(`Withdrawal requested to ${defaultMethod.name}.`);
+  };
 
   return (
     <AppShell
       role="worker"
       title="Earnings"
       subtitle="Paid out every Friday"
-      action={<button className="btn-primary">Withdraw Earnings</button>}
+      action={<button onClick={handleWithdraw} className="btn-primary">Withdraw Earnings</button>}
     >
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Total earned" value="R23 850" hint="Since March 2026" icon="💰" />
         <StatCard label="This week" value={rand(week)} hint="6 jobs" icon="📈" />
         <StatCard label="Available to withdraw" value="R2 730" hint="Cleared funds" icon="🏦" />
+      </div>
+
+      <div className="card-surface p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-bold">Payout method</h2>
+            <p className="text-sm text-muted-foreground">
+              {defaultMethod ? `${defaultMethod.name} · ${defaultMethod.details}` : "No payment method added yet."}
+            </p>
+          </div>
+          <Link to="/settings" className="btn-secondary !h-10 !px-4 !text-sm">
+            Manage payment methods
+          </Link>
+        </div>
       </div>
 
       <div className="card-surface p-6">

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { chatThread, conversations } from "@/lib/data";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/messages/$chatId")({
   head: () => ({
@@ -20,11 +22,29 @@ export const Route = createFileRoute("/messages/$chatId")({
 function Chat() {
   const { chatId } = Route.useParams();
   const convo = conversations.find((c) => c.id === chatId) ?? conversations[0]!;
-  const thread = chatThread[convo.id] ?? [];
+  const [draft, setDraft] = useState("");
+  const [thread, setThread] = useState(chatThread[convo.id] ?? []);
+
+  const sendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!draft.trim()) {
+      toast.error("Type a message before sending.");
+      return;
+    }
+    setThread((prev) => [
+      ...prev,
+      {
+        from: "me",
+        text: draft.trim(),
+        time: new Date().toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" }),
+      },
+    ]);
+    setDraft("");
+    toast.success("Message sent");
+  };
 
   return (
     <AppShell
-      role="member"
       title={convo.name}
       subtitle={convo.role}
       action={
@@ -58,9 +78,14 @@ function Chat() {
         </div>
         <form
           className="flex items-center gap-2 border-t border-border p-3"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={sendMessage}
         >
-          <input className="field" placeholder="Write a message…" />
+          <input
+            className="field"
+            placeholder="Write a message…"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
           <button className="btn-primary !px-5">Send</button>
         </form>
       </div>
