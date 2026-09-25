@@ -73,7 +73,17 @@ export function Section({
   );
 }
 
-export function JobCard({ job, view }: { job: Job; view: "member" | "worker" }) {
+export function JobCard({
+  job,
+  view,
+  saved = false,
+  onToggleSaved,
+}: {
+  job: Job;
+  view: "member" | "worker";
+  saved?: boolean;
+  onToggleSaved?: () => void;
+}) {
   const to = view === "member" ? "/member/job/$jobId" : "/worker/job/$jobId";
   return (
     <article className="card-surface flex flex-col gap-3 p-5 transition-shadow hover:shadow-[var(--shadow-lift)]">
@@ -103,12 +113,17 @@ export function JobCard({ job, view }: { job: Job; view: "member" | "worker" }) 
         <Link to={to} params={{ jobId: job.id }} className="btn-primary !h-10 !px-4 !text-sm">
           {view === "worker" ? "Apply Now" : "View job"}
         </Link>
-        <Link to="/messages" className="btn-secondary !h-10 !px-4 !text-sm">
+        <Link to="/messages/" className="btn-secondary !h-10 !px-4 !text-sm">
           Message
         </Link>
-        {view === "worker" && (
-          <button className="btn-ghost !px-3" aria-label="Save job">
-            ♡
+        {view === "worker" && onToggleSaved && (
+          <button
+            type="button"
+            className={`btn-ghost !px-3 ${saved ? "text-primary" : ""}`}
+            aria-label={saved ? "Remove saved job" : "Save job"}
+            onClick={onToggleSaved}
+          >
+            {saved ? "♥" : "♡"}
           </button>
         )}
       </div>

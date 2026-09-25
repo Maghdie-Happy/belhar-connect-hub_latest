@@ -19,7 +19,7 @@ export const Route = createFileRoute("/messages/")({
 
 function Messages() {
   return (
-    <AppShell role="member" title="Messages" subtitle="Chat before you commit to a job">
+    <AppShell title="Messages" subtitle="Chat before you commit to a job">
       <div className="card-surface divide-y divide-border overflow-hidden">
         {conversations.map((c) => (
           <Link

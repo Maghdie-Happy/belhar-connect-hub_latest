@@ -30,20 +30,15 @@ function MemberDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<(typeof sortOptions)[number]>("newest");
 
-  const stats = useMemo(() => {
-    const active = jobsList.filter((job) => job.status === "Open" || job.status === "In Progress");
-    const completed = jobsList.filter((job) => job.status === "Completed");
-    const formatZar = (amount: number) =>
-      new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 0 }).format(amount);
-
-    return {
-      totalJobs: jobsList.length,
-      activeJobs: active.length,
-      hiredJobs: completed.length,
-      totalBudget: formatZar(active.reduce((total, job) => total + Number(job.budget), 0)),
-      totalSpent: formatZar(completed.reduce((total, job) => total + Number(job.budget), 0)),
-    };
-  }, [jobsList]);
+  const totalJobs = useMemo(() => jobsList.length, [jobsList]);
+  const activeJobs = useMemo(
+    () => jobsList.filter((job) => job.status === "Open" || job.status === "In Progress").length,
+    [jobsList],
+  );
+  const hiredJobs = useMemo(
+    () => jobsList.filter((job) => job.status === "Completed").length,
+    [jobsList],
+  );
   const filteredJobs = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     const filtered = jobsList.filter((job) => {
@@ -85,10 +80,9 @@ function MemberDashboard() {
       }
     >
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Jobs posted" value={String(stats.totalJobs)} hint="Since March 2026" icon="📋" />
-        <StatCard label="Active jobs" value={String(stats.activeJobs)} hint={`${stats.totalBudget} total allocated`} icon="⏳" />
-        <StatCard label="Workers hired" value={String(stats.hiredJobs)} hint={`${stats.totalSpent} total spent`} icon="🤝" />
-        <StatCard label="Total allocated" value={stats.totalBudget} hint="Open or in-progress jobs" icon="💰" />
+        <StatCard label="Jobs posted" value={String(totalJobs)} hint="Since March 2026" icon="📋" />
+        <StatCard label="Active jobs" value={String(activeJobs)} hint="Open or in progress" icon="⏳" />
+        <StatCard label="Workers hired" value={String(hiredJobs)} hint="Completed jobs" icon="🤝" />
       </div>
 
       <div className="space-y-3">
