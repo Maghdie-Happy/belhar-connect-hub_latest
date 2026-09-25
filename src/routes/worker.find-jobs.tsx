@@ -2,7 +2,8 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { JobCard } from "@/components/ui-kit";
-import { categories, categoryEmoji, jobs } from "@/lib/data";
+import { categories, categoryEmoji } from "@/lib/data";
+import { useJobs, useSavedJobs } from "@/lib/hooks";
 
 export const Route = createFileRoute("/worker/find-jobs")({
   head: () => ({
@@ -23,6 +24,8 @@ export const Route = createFileRoute("/worker/find-jobs")({
 function FindJobs() {
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
+  const { jobs } = useJobs();
+  const { saved, toggleSaved } = useSavedJobs();
 
   const list = jobs.filter(
     (j) =>
@@ -61,7 +64,14 @@ function FindJobs() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {list.map((j) => (
-          <JobCard key={j.id} job={j} view="worker" />
+          <div key={j.id}>
+            <JobCard
+              job={j}
+              view="worker"
+              saved={saved.includes(j.id)}
+              onToggleSaved={() => toggleSaved(j.id)}
+            />
+          </div>
         ))}
         {list.length === 0 && (
           <p className="card-surface p-8 text-center text-sm text-muted-foreground">

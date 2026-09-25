@@ -28,7 +28,6 @@ export function LogoMark({
   );
 }
 
-
 export function Logo({
   reversed = false,
   className = "",

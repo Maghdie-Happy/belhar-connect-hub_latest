@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Stars, Tag } from "@/components/ui-kit";
-import { jobs, rand } from "@/lib/data";
+import { rand } from "@/lib/data";
+import { useApplications, useJobs } from "@/lib/hooks";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/worker/job/$jobId")({
   head: () => ({
@@ -20,7 +23,20 @@ export const Route = createFileRoute("/worker/job/$jobId")({
 
 function WorkerJobDetail() {
   const { jobId } = Route.useParams();
+  const { jobs } = useJobs();
+  const { applied, applyToJob } = useApplications();
+  const [applying, setApplying] = useState(false);
   const job = jobs.find((j) => j.id === jobId) ?? jobs[0]!;
+  const hasApplied = applied.includes(job.id);
+
+  const handleApply = async () => {
+    if (hasApplied || applying) return;
+    setApplying(true);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    applyToJob(job.id);
+    setApplying(false);
+    toast.success("Application sent to the client");
+  };
 
   return (
     <AppShell role="worker" title={job.title} subtitle={`${job.location} · ${job.distanceKm} km away`}>
@@ -70,7 +86,14 @@ function WorkerJobDetail() {
               <Stars rating={job.clientRating} />
             </div>
             <div className="mt-5 space-y-2">
-              <button className="btn-primary w-full">Apply Now</button>
+              <button
+                type="button"
+                className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleApply}
+                disabled={hasApplied || applying || job.status !== "Open"}
+              >
+                {hasApplied ? "Application sent" : applying ? "Sending…" : job.status === "Open" ? "Apply Now" : "Job closed"}
+              </button>
               <Link to="/messages" className="btn-secondary w-full">
                 Message Client
               </Link>

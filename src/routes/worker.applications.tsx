@@ -2,7 +2,8 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Tag } from "@/components/ui-kit";
-import { applications, rand } from "@/lib/data";
+import { applications as seedApplications, rand } from "@/lib/data";
+import { useApplications, useJobs } from "@/lib/hooks";
 
 export const Route = createFileRoute("/worker/applications")({
   head: () => ({
@@ -19,12 +20,23 @@ export const Route = createFileRoute("/worker/applications")({
   component: MyApplications,
 });
 
-type Tab = keyof typeof applications;
-const tabs = Object.keys(applications) as Tab[];
+type Tab = keyof typeof seedApplications;
+const tabs = Object.keys(seedApplications) as Tab[];
 
 function MyApplications() {
   const [tab, setTab] = useState<Tab>("Applied");
-  const list = applications[tab];
+  const { applied } = useApplications();
+  const { jobs } = useJobs();
+  const persistedApplications = jobs
+    .filter((job) => applied.includes(job.id))
+    .map((job) => ({
+      id: job.id,
+      job: job.title,
+      client: job.postedBy,
+      budget: job.budget,
+      when: "Applied recently",
+    }));
+  const list = tab === "Applied" ? [...persistedApplications, ...seedApplications.Applied] : seedApplications[tab];
 
   return (
     <AppShell role="worker" title="My Applications" subtitle="Where each application stands">
@@ -39,7 +51,7 @@ function MyApplications() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t} ({applications[t].length})
+            {t} ({t === "Applied" ? persistedApplications.length + seedApplications.Applied.length : seedApplications[t].length})
           </button>
         ))}
       </div>
@@ -47,7 +59,7 @@ function MyApplications() {
       <div className="space-y-3">
         {list.map((a) => (
           <div
-            key={a.job}
+            key={"id" in a ? a.id : a.job}
             className="card-surface grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-5"
           >
             <div className="min-w-0">
@@ -59,6 +71,11 @@ function MyApplications() {
             </div>
             <div className="shrink-0 text-right">
               <div className="font-display text-lg font-bold text-primary">{rand(a.budget)}</div>
+              {"id" in a ? (
+                <Link to="/worker/job/$jobId" params={{ jobId: a.id }} className="mr-3 text-xs font-semibold text-primary">
+                  View job
+                </Link>
+              ) : null}
               <Link to="/messages" className="text-xs font-semibold text-primary">
                 Message client
               </Link>
